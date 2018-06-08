@@ -14,11 +14,16 @@ defmodule ABCI.Codec do
 
   def decode(req, result) when req != "" do
     {varint, message} = varint_decode(req)
-    tail = String.slice(message, zigzag_decode(varint), String.length(message))
+
+    varint_decode = zigzag_decode(varint)
+    bytes = :binary.bin_to_list(message)
+
+    tail = Enum.slice(bytes, varint_decode, length(bytes)) |> :binary.list_to_bin()
+    head = Enum.slice(bytes, 0, varint_decode) |> :binary.list_to_bin()
 
     decode(
       tail,
-      result ++ [Types.Request.decode(String.slice(message, 0, zigzag_decode(varint)))]
+      result ++ [Types.Request.decode(head)]
     )
   end
 

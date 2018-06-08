@@ -11,7 +11,7 @@ defmodule ABCI.Example.CounterApp do
   alias ABCI.Types
 
   def init() do
-    initial_state = %{hash_count: 0, tx_count: 0, serial: true}
+    initial_state = %{hash_count: 0, tx_count: 0, serial: false}
     Agent.start_link(fn -> initial_state end, name: :counter_app)
     ABCI.init(__MODULE__)
   end
@@ -76,7 +76,6 @@ defmodule ABCI.Example.CounterApp do
 
   def deliver_tx(req) do
     state = Agent.get(:counter_app, & &1)
-    # Types.ResponseDeliverTx.new(code: @code_type_ok)
     response =
       if state.serial do
         over_max_tx_size(req.tx) || pad_tx(req.tx) |> deliver_nonce(state.tx_count)
@@ -91,7 +90,6 @@ defmodule ABCI.Example.CounterApp do
 
   def check_tx(req) do
     state = Agent.get(:counter_app, & &1)
-
     if state.serial do
       over_max_tx_size(req.tx) || pad_tx(req.tx) |> check_nonce(state.tx_count)
     end
