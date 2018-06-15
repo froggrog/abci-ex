@@ -22,3 +22,6 @@ erl_crash.dump
 # Ignore package tarball (built via "mix hex.build").
 abci-*.tar
 
+# Ignore Mac DS_Store files
+.DS_Store
+**/.DS_Store

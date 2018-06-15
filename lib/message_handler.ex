@@ -23,22 +23,22 @@ defmodule ABCI.MessageHandler do
     |> process
   end
 
-  defp append(state, ""), do: %{state: state, data: ""}
-  defp append(state, data), do: %{state: state, data: data}
+  defp append(state, ""), do: %{state | buffer: ""}
+  defp append(state, data), do: %{state | buffer: state.buffer <> data}
 
-  defp process(buffer) do
-    case extract(buffer.data) do
+  defp process(state) do
+    case extract(state.buffer) do
       {:statement, data, statement} ->
         if String.length(statement) > 0 do
-          handle(buffer.state, {:ok, statement})
+          handle(state.service, {:ok, statement})
         else
-          write_socket(<<>>, buffer.state.socket)
+          write_socket(<<>>, state.service.socket)
         end
 
-        process(%{state: buffer.state, data: data})
+        process(%{state | buffer: data})
 
       {:nothing, _} ->
-        {:noreply, buffer.state}
+        {:noreply, state}
     end
   end
 
