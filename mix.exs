@@ -4,7 +4,7 @@ defmodule Abci.MixProject do
   def project do
     [
       app: :abci,
-      version: "0.1.0",
+      version: "0.1.1",
       elixir: "~> 1.6",
       start_permanent: Mix.env() == :prod,
       deps: deps(),
@@ -27,7 +27,8 @@ defmodule Abci.MixProject do
     [
       {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
       {:ok_jose, "~> 3.0"},
-      {:exprotobuf, "~> 1.2"}
+      {:protobuf, "~> 0.5.3"},
+      {:google_protos, "~> 0.1"},
     ]
   end
 end
