@@ -16,6 +16,9 @@ defmodule ABCI do
     Server.init(app)
   end
 
+  @doc """
+  Start ABCI Server in linked process
+  """
   def start_link(app) do
     spawn_link(fn -> Server.init(app) end)
   end
