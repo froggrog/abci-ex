@@ -26,7 +26,6 @@ defmodule Abci.MixProject do
   defp deps do
     [
       {:credo, "~> 0.9.1", only: [:dev, :test], runtime: false},
-      {:ok_jose, "~> 3.0"},
       {:protobuf, "~> 0.5.3"},
       {:google_protos, "~> 0.1"},
     ]

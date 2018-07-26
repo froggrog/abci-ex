@@ -1,11 +1,11 @@
-use OkJose
-
 defmodule ABCI.MessageHandler do
   @moduledoc """
   Get a message from a socket, process it and send it back to the socket
   """
 
   use GenServer
+
+  require Logger
 
   alias ABCI.Codec
   alias ABCI.Service
@@ -23,50 +23,37 @@ defmodule ABCI.MessageHandler do
     |> process()
   end
 
-  defp append(state, ""), do: %{state | buffer: ""}
+  defp append(state, ""), do: state
   defp append(state, data), do: %{state | buffer: state.buffer <> data}
 
   defp process(state) do
-    case extract(state.buffer) do
-      {:statement, data, statement} ->
-        if String.length(statement) > 0 do
-          handle(state.service, {:ok, statement})
-        else
-          write_socket(<<>>, state.service.socket)
-        end
+    case String.split(state.buffer, @eol, parts: 2) do
+      [message, rest] ->
+        process_message(state.service, message)
+        process(%{state | buffer: rest})
 
-        process(%{state | buffer: data})
-
-      {:nothing, _} ->
+      [_] ->
         {:noreply, state}
     end
   end
 
-  defp extract(data) do
-    case String.split(data, @eol, parts: 2) do
-      [match, rest] -> {:statement, rest, match}
-      [rest] -> {:nothing, rest}
+  defp process_message(service, "") do
+    write_socket(<<>>, service.socket)
+  end
+
+  defp process_message(service, msg) do
+    with {:ok, requests} <- Codec.decode(msg),
+         {:ok, responses} <- requests |> Service.process(service.app) |> Codec.encode(),
+         :ok <- write_socket(responses, service.socket)
+    do
+      :ok
+    else
+      {:error, reason} ->
+        Logger.error("Error while processing message: #{inspect reason}, msg: #{inspect msg}")
     end
   end
 
-  defp handle(state, msg) do
-    msg
-    |> Codec.decode()
-    |> Service.process(state.app)
-    |> Codec.encode()
-    |> write_socket(state.socket)
-    |> Pipe.ok()
-    |> (fn x ->
-          case x do
-            :ok -> nil
-            {:error, reason} -> IO.puts("Serve error: #{inspect(reason)}")
-          end
-
-          x
-        end).()
-  end
-
-  defp write_socket(raw, socket) do
-    :gen_tcp.send(socket, raw <> @eol)
+  defp write_socket(data, socket) do
+    :gen_tcp.send(socket, data <> @eol)
   end
 end

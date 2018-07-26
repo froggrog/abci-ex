@@ -4,13 +4,15 @@ defmodule ABCI.Service do
   """
   alias ABCI.Types
 
+  require Logger
+
   @callbacks ~w(
     info set_option query check_tx init_chain begin_block deliver_tx
     commit end_block echo flush
   )a
 
   def process(requests, app) do
-    {:ok, Enum.map(requests, &(process_one(&1, app)))}
+    Enum.map(requests, &(process_one(&1, app)))
   end
 
   defp process_one(%{value: {value, req}}, app) when value in @callbacks do
@@ -19,6 +21,7 @@ defmodule ABCI.Service do
   end
 
   defp process_one(%{value: {value, _}}, _) do
+    Logger.error("Callback not implemented: #{inspect value}")
     Types.ResponseException.new(data: "Can't handle request #{inspect value}")
     |> build_response()
   end
