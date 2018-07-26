@@ -14,13 +14,13 @@ defmodule ABCI.MessageHandler do
 
   def init(state), do: {:ok, state}
 
-  def create(state), do: GenServer.start_link(__MODULE__, state)
+  def start_link(state), do: GenServer.start_link(__MODULE__, state)
   def receive(value, pid \\ __MODULE__), do: GenServer.cast(pid, {:receive, value})
 
   def handle_cast({:receive, data}, state) do
     state
     |> append(data)
-    |> process
+    |> process()
   end
 
   defp append(state, ""), do: %{state | buffer: ""}
@@ -52,7 +52,7 @@ defmodule ABCI.MessageHandler do
   defp handle(state, msg) do
     msg
     |> Codec.decode()
-    |> Service.start_link(state.app)
+    |> Service.process(state.app)
     |> Codec.encode()
     |> write_socket(state.socket)
     |> Pipe.ok()

@@ -32,7 +32,7 @@ defmodule ABCI.Server do
   end
 
   defp accepted(app, client) do
-    {:ok, buffer_pid} = MessageHandler.create(%{service: %{app: app, socket: client}, buffer: <<>>})
+    {:ok, buffer_pid} = MessageHandler.start_link(%{service: %{app: app, socket: client}, buffer: <<>>})
     serve(app, client, buffer_pid)
   end
 

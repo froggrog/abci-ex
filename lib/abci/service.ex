@@ -4,54 +4,24 @@ defmodule ABCI.Service do
   """
   alias ABCI.Types
 
-  def start_link(requests, app) do
-    {:ok, Enum.map(requests, fn req -> handle(req, app) end)}
+  @callbacks ~w(
+    info set_option query check_tx init_chain begin_block deliver_tx
+    commit end_block echo flush
+  )a
+
+  def process(requests, app) do
+    {:ok, Enum.map(requests, &(process_one(&1, app)))}
   end
 
-  defp handle(request, app) do
-    response =
-      case request.value do
-        # Info/Query connection
-        {:info, req} ->
-          {:info, app.info(req)}
-
-        {:set_option, req} ->
-          {:set_option, app.set_option(req)}
-
-        {:query, req} ->
-          {:query, app.query(req)}
-
-        # Mempool connection
-        {:check_tx, req} ->
-          {:check_tx, app.check_tx(req)}
-
-        # Consensus connection
-        {:init_chain, req} ->
-          {:init_chain, app.init_chain(req)}
-
-        {:begin_block, req} ->
-          {:begin_block, app.begin_block(req)}
-
-        {:deliver_tx, req} ->
-          {:deliver_tx, app.deliver_tx(req)}
-
-        {:commit, req} ->
-          {:commit, app.commit(req)}
-
-        {:end_block, req} ->
-          {:end_block, app.end_block(req)}
-
-        # Miscellaneous connection
-        {:echo, req} ->
-          {:echo, app.echo(req)}
-
-        {:flush, req} ->
-          {:flush, app.flush(req)}
-
-        _ ->
-          Types.ResponseException.new(data: "Can't handling request")
-      end
-
-    Types.Response.new(value: response)
+  defp process_one(%{value: {value, req}}, app) when value in @callbacks do
+    {value, apply(app, value, [req])}
+    |> build_response()
   end
+
+  defp process_one(%{value: {value, _}}, _) do
+    Types.ResponseException.new(data: "Can't handle request #{inspect value}")
+    |> build_response()
+  end
+
+  defp build_response(resp), do: Types.Response.new(value: resp)
 end
