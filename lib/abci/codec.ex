@@ -20,7 +20,7 @@ defmodule ABCI.Codec do
 
     tail = Enum.slice(bytes, varint_decode, length(bytes)) |> :binary.list_to_bin()
     head = Enum.slice(bytes, 0, varint_decode) |> :binary.list_to_bin()
-
+    
     decode(
       tail,
       result ++ [Types.Request.decode(head)]

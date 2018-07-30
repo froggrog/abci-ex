@@ -3,7 +3,7 @@ defmodule ABCI.Server do
   Documentation for ABCI Server.
   """
 
-  @default_port 46_658
+  @default_port 26_658
 
   alias ABCI.MessageHandler
 
