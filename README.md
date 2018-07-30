@@ -11,7 +11,7 @@ Add `:abci` as a dependency to your project's `mix.exs`:
 ```elixir
 defp deps do
   [
-    {:abci, git: "https://github.com/neocortexlab/abci-ex.git", tag: "0.1"}
+    {:abci, github: "neocortexlab/abci-ex"}
   ]
 end
 ```
