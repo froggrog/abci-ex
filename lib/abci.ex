@@ -20,6 +20,14 @@ defmodule ABCI do
   Start ABCI Server in linked process
   """
   def start_link(app) do
-    spawn_link(fn -> Server.init(app) end)
+    pid = spawn_link(fn -> Server.init(app) end)
+    {:ok, pid}
+  end
+
+  def child_spec(opts) do
+    %{
+      id: __MODULE__,
+      start: {__MODULE__, :start_link, [opts]},
+    }
   end
 end
