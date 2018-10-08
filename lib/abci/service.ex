@@ -16,7 +16,8 @@ defmodule ABCI.Service do
   end
 
   defp process_one(%{value: {value, req}}, app) when value in @callbacks do
-    {value, apply(app, value, [req])}
+    resp = app.handle(value, req)
+    {value, resp}
     |> build_response()
   end
 
